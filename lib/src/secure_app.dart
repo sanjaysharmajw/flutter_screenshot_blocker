@@ -8,12 +8,12 @@ class SecureApp extends StatefulWidget {
   final String? securityWarningMessage;
 
   const SecureApp({
-    Key? key,
+    super.key,
     required this.child,
     this.enableScreenshotBlocking = true,
     this.showSecurityWarning = true,
     this.securityWarningMessage,
-  }) : super(key: key);
+  });
 
   @override
   State<SecureApp> createState() => _SecureAppState();

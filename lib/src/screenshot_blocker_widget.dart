@@ -11,13 +11,13 @@ class ScreenshotBlockerWidget extends StatefulWidget {
   final Widget? blockedWidget;
 
   const ScreenshotBlockerWidget({
-    Key? key,
+    super.key,
     required this.child,
     this.blockScreenshots = true,
     this.detectScreenshots = true,
     this.onScreenshotDetected,
     this.blockedWidget,
-  }) : super(key: key);
+  });
 
   @override
   State<ScreenshotBlockerWidget> createState() =>

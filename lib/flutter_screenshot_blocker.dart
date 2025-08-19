@@ -1,4 +1,4 @@
-library flutter_screenshot_blocker;
+library;
 
 import 'dart:async';
 import 'package:flutter/services.dart';
