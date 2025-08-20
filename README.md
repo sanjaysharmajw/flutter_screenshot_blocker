@@ -7,6 +7,7 @@ A powerful Flutter plugin that prevents screenshots or shows black screen when s
 
 - ✅ **System-Level Screenshot Blocking** - Uses FLAG_SECURE on Android and secure views on iOS
 - 📱 **Black Screen on Screenshot** - When screenshots are attempted, they show black screen
+- 📱 **Black Screen on Screen recording** - Screen recordings will show black screen
 - 🔍 **Screenshot Detection** - Detect when users attempt to take screenshots
 - 🎯 **Widget-Level Protection** - Apply protection to specific parts of your app
 - 🔒 **Secure App Wrapper** - Easy-to-use app-wide protection
@@ -20,7 +21,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-flutter_screenshot_blocker: ^1.0.1
+flutter_screenshot_blocker: ^1.0.2
 ```
 
 Run:

@@ -1,6 +1,6 @@
 name: flutter_screenshot_blocker
 description: A powerful Flutter plugin that prevents screenshots or shows black screen when screenshots are taken. This plugin provides **system-level protection** using native platform code.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/sanjaysharmajw/flutter_screenshot_blocker.git
 
 environment:
@@ -16,6 +16,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+screenshots:
+  - description: 'Prevents Screen Recording and screenshots'
+    path: screenshots/screen_recording_icons.png
 
 # The following section is specific to Flutter packages.
 flutter:

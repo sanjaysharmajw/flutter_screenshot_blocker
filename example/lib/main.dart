@@ -75,8 +75,7 @@ class _DemoScreenState extends State<DemoScreen> {
         },
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: [
               // Status Card
               Card(
@@ -105,11 +104,11 @@ class _DemoScreenState extends State<DemoScreen> {
                                   : 'Unprotected',
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
-                                    color: _isProtectionEnabled
-                                        ? Colors.green.shade700
-                                        : Colors.red.shade700,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                color: _isProtectionEnabled
+                                    ? Colors.green.shade700
+                                    : Colors.red.shade700,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Text(
                               _isProtectionEnabled
@@ -173,109 +172,107 @@ class _DemoScreenState extends State<DemoScreen> {
               const SizedBox(height: 16),
 
               // Sensitive Content Card
-              Expanded(
-                child: Card(
-                  color: Colors.amber.shade50,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+              Card(
+                color: Colors.amber.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber,
+                            color: Colors.orange.shade700,
+                            size: 28,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Sensitive Information',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                              color: Colors.orange.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      const Text(
+                        '🔐 Banking Details:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('Account Number: 1234 5678 9012 3456'),
+                      const Text('Routing Number: 987654321'),
+                      const Text('PIN: 9876'),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        '💳 Credit Card:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text('Card Number: 4532 1234 5678 9012'),
+                      const Text('CVV: 123'),
+                      const Text('Expiry: 12/28'),
+                      const SizedBox(height: 16),
+
+                      const Text(
+                        '📊 Account Balance:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '\$125,430.50',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade100,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade300),
+                        ),
+                        child: Row(
                           children: [
                             Icon(
-                              Icons.warning_amber,
-                              color: Colors.orange.shade700,
-                              size: 28,
+                              Icons.info_outline,
+                              color: Colors.blue.shade700,
                             ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Sensitive Information',
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(
-                                    color: Colors.orange.shade700,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Try taking a screenshot now!\n'
+                                    'With protection ON: Black screen\n'
+                                    'With protection OFF: Normal screenshot',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue.shade700,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-
-                        const Text(
-                          '🔐 Banking Details:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text('Account Number: 1234 5678 9012 3456'),
-                        const Text('Routing Number: 987654321'),
-                        const Text('PIN: 9876'),
-                        const SizedBox(height: 16),
-
-                        const Text(
-                          '💳 Credit Card:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text('Card Number: 4532 1234 5678 9012'),
-                        const Text('CVV: 123'),
-                        const Text('Expiry: 12/28'),
-                        const SizedBox(height: 16),
-
-                        const Text(
-                          '📊 Account Balance:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          '\$125,430.50',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-
-                        const Spacer(),
-
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade300),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: Colors.blue.shade700,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Try taking a screenshot now!\n'
-                                  'With protection ON: Black screen\n'
-                                  'With protection OFF: Normal screenshot',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.blue.shade700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -334,18 +331,18 @@ class _DemoScreenState extends State<DemoScreen> {
       _isProtectionEnabled = !_isProtectionEnabled;
     });
 
-   if(mounted) {
-     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isProtectionEnabled
-              ? 'Screenshot protection enabled - screenshots will be black'
-              : 'Screenshot protection disabled - screenshots allowed',
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isProtectionEnabled
+                ? 'Screenshot protection enabled - screenshots will be black'
+                : 'Screenshot protection disabled - screenshots allowed',
+          ),
+          backgroundColor: _isProtectionEnabled ? Colors.green : Colors.orange,
         ),
-        backgroundColor: _isProtectionEnabled ? Colors.green : Colors.orange,
-      ),
-    );
-   }
+      );
+    }
   }
 
   void _resetStats() {
