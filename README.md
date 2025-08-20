@@ -1,3 +1,9 @@
+![Logo](https://github.com/sanjaysharmajw/flutter_screenshot_blocker/blob/main/screenshots/flutter_screenshot_blocker.png?raw=true)
+
+| ![Pub Publisher](https://img.shields.io/pub/publisher/flutter_screenshot_blocker) | ![Pub Points](https://img.shields.io/pub/points/flutter_screenshot_blocker) | ![Pub Popularity](https://img.shields.io/pub/popularity/flutter_screenshot_blocker) | ![Pub Version](https://img.shields.io/pub/v/flutter_screenshot_blocker) | ![Pub Likes](https://img.shields.io/pub/likes/flutter_screenshot_blocker) |
+|---|---|---|---|---|
+
+
 
 # Flutter Screenshot Blocker
 
@@ -31,7 +37,7 @@ flutter pub get
 ```
 ## 📱 Platform Setup
 
-### 📌 Android Setup
+### 🤖 Android Setup
 
 No additional setup required! The plugin automatically applies `FLAG_SECURE` to prevent screenshots. You can setup it if needed. So you can use the **`manifest `** given below
 
@@ -82,7 +88,7 @@ To block screenshots in your Flutter app, update the **`AndroidManifest.xml`** a
 
 ```
 
-### 📌 iOS Setup
+###  iOS Setup
 
 No additional setup required! The plugin uses secure UITextField technique and screenshot detection. You can setup it if needed. So you can use the **`Info.plist `** given below
 
@@ -237,7 +243,7 @@ void dispose() {
 
 ```
 
-## 🔧 API Reference
+## ⚙️ API Reference
 
 ### FlutterScreenshotBlocker Class
 
