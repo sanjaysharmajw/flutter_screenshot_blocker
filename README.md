@@ -399,6 +399,23 @@ This plugin provides **system-level protection** which means:
 - The Simulator is just a macOS window — macOS can freely screenshot everything inside it
 - `UIScreen.capturedDidChangeNotification` for recording detection also doesn't fire correctly
 
+### ⚠️ Android Emulator Limitation
+
+**Screenshot blocking partially works on Android Emulator** — unlike iOS Simulator, it is not a complete failure, but full testing requires a real device.
+
+| Feature | Android Emulator | Real Android Device |
+|---------|:---:|:---:|
+| Screenshot blocking (system/ADB) | ✅ | ✅ |
+| Screenshot blocking (host OS capture) | ❌ | ✅ |
+| Screen recording blocking | ⚠️ Partial | ✅ |
+| Screenshot detection event | ✅ | ✅ |
+| UI / layout testing | ✅ | ✅ |
+
+**How Emulator differs from a real device:**
+- `FLAG_SECURE` blocks Android's own screenshot mechanism — `adb screencap` and Android Studio's screenshot button will show **black** ✅
+- But the emulator is a window on your host machine (macOS/Windows/Linux) — taking a screenshot of the host OS (e.g. `Cmd+Shift+4` on Mac) captures the emulator window directly, bypassing `FLAG_SECURE` ❌
+- For full end-to-end testing of screenshot and recording blocking, always use a real Android device
+
 **To test on a real device:**
 ```bash
 # List connected devices
