@@ -36,7 +36,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_screenshot_blocker: ^1.0.3
+  flutter_screenshot_blocker: ^1.0.4
 ```
 
 Run:
