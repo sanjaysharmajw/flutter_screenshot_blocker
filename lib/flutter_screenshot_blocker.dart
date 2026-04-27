@@ -125,7 +125,7 @@ class ScreenshotEvent {
     return ScreenshotEvent(
       type: map['type'] ?? 'unknown',
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] ?? 0),
-      metadata: map['metadata'],
+      metadata: (map['metadata'] as Map?)?.cast<String, dynamic>(),
     );
   }
 
