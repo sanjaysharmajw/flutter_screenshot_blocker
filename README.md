@@ -27,7 +27,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-flutter_screenshot_blocker: ^1.0.2
+flutter_screenshot_blocker: ^1.0.3
 ```
 
 Run:
@@ -319,6 +319,32 @@ To test the screenshot blocking:
 - Try taking a screenshot
 - The screenshot should show a black screen
 - Disable protection and try again - normal screenshot
+
+### ⚠️ iOS Simulator Limitation
+
+**Screenshot blocking does NOT work on iOS Simulator.** Always test on a real iOS device.
+
+| Feature | iOS Simulator | Real iOS Device |
+|---------|:---:|:---:|
+| Screenshot blocking (black screen) | ❌ | ✅ |
+| Screen recording overlay (black) | ❌ | ✅ |
+| Screenshot detection event | ⚠️ Unreliable | ✅ |
+| UI / layout testing | ✅ | ✅ |
+
+**Why Simulator doesn't work:**
+- iOS Simulator runs on macOS and uses macOS's display compositor, not the iOS compositor
+- The `IOSurface` hardware-level protection flag that makes screenshots black is an iOS-only hardware feature
+- The Simulator is just a macOS window — macOS can freely screenshot everything inside it
+- `UIScreen.capturedDidChangeNotification` for recording detection also doesn't fire correctly
+
+**To test on a real device:**
+```bash
+# List connected devices
+flutter devices
+
+# Run on a specific device
+flutter run -d <device-udid>
+```
 
 ## 🔧 Troubleshooting
 
