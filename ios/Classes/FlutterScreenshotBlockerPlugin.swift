@@ -2,14 +2,12 @@ import Flutter
 import UIKit
 
 public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
-    private var isScreenshotBlocked       = false
+    private var isScreenshotBlocked    = false
     private var screenshotObserver: NSObjectProtocol?
     private var captureObserver: NSObjectProtocol?
     private var eventSink: FlutterEventSink?
-    private var secureField: UITextField?          // stays in window's view hierarchy
-    private var originalWindowSuperLayer: CALayer?
-    private var savedWindowPosition: CGPoint?
-    private var overlayWindow: UIWindow?           // separate window for recording overlay
+    private var secureField: UITextField?
+    private var overlayWindow: UIWindow?
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
@@ -65,37 +63,43 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
     }
 
     // MARK: - Screenshot / recording blocking
+    //
+    // Mechanism: A full-screen UITextField (isSecureTextEntry = true) is added to
+    // the window, then Flutter's root view layer (flutterView.layer) is reparented
+    // inside field.layer.  The IOSurface "protected" flag on field.layer propagates
+    // to every descendant, so Flutter's entire render tree appears as black in any
+    // screenshot or screen-recording capture.
+    //
+    // Key design decision: window.layer is NEVER moved.  Previous versions moved
+    // window.layer out of the screen layer, which violated UIKit's core invariant
+    // that window.layer must be a direct child of the screen layer.  UIKit
+    // internally retains layers during layout and app-lifecycle callbacks; touching
+    // window.layer's parent caused EXC_BAD_ACCESS in objc_retain / objc_msgSend.
+    //
+    // By keeping window.layer in place and only reparenting flutterView.layer
+    // (one level lower), UIKit never sees a violated invariant and the crash
+    // disappears.
+    //
+    // Coordinate spaces: field is constrained to fill window exactly, so
+    // field.layer's coordinate space == window.layer's coordinate space.
+    // UIKit layout will continue updating flutterView.layer.position/bounds with
+    // numerically correct values even after the reparent.
+    //
+    // The UITextField must remain in the UIKit view hierarchy for the full duration
+    // of protection; calling removeFromSuperview() silently revokes the IOSurface
+    // flag.
 
     private func enableScreenshotBlocking(result: @escaping FlutterResult) {
         DispatchQueue.main.async { [weak self] in
             guard let strongSelf = self else { return result(false) }
             if strongSelf.isScreenshotBlocked { return result(true) }
             guard let window = strongSelf.getKeyWindow() else { return result(false) }
-            guard let originalSuper = window.layer.superlayer else { return result(false) }
-
-            // ── How the trick works ───────────────────────────────────────────────
-            // UITextField with isSecureTextEntry = true causes iOS to mark its
-            // CALayer's IOSurface as "protected".  The protection propagates to
-            // every descendant layer.  By reparenting window.layer into that subtree
-            // we make Flutter's entire output non-capturable by the OS compositor.
-            //
-            // CRITICAL: the field MUST remain in the UIKit view hierarchy for the
-            // duration of protection.  Calling removeFromSuperview() drops the
-            // IOSurface "protected" flag and silently breaks screenshot blocking.
-            //
-            // Coordinate-system note: field is constrained to fill the window exactly,
-            // so field.layer's coordinate space == window.layer's coordinate space ==
-            // originalSuper's coordinate space (window is always full-screen at origin
-            // 0,0).  UIKit layout passes that update field.layer.position or
-            // window.layer.position use values that are numerically identical in all
-            // three spaces, so no manual conversion is needed.
+            guard let flutterView = window.rootViewController?.view else { return result(false) }
 
             let field = UITextField()
             field.isSecureTextEntry        = true
             field.isUserInteractionEnabled = false
             field.backgroundColor          = .clear
-            // autoresizingMask keeps field full-screen on rotation without requiring
-            // Auto Layout, which avoids a second layout pass later.
             field.translatesAutoresizingMaskIntoConstraints = false
             window.addSubview(field)
             NSLayoutConstraint.activate([
@@ -104,35 +108,35 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
                 field.trailingAnchor.constraint(equalTo: window.trailingAnchor),
                 field.bottomAnchor.constraint(equalTo: window.bottomAnchor),
             ])
-            // Force UITextField to build its internal layer tree (including the
-            // secure sublayer) synchronously before we inspect it.
+            // Force UITextField to build its internal sublayer tree synchronously.
+            window.setNeedsLayout()
             window.layoutIfNeeded()
 
-            // Choose the best secure anchor:
-            // • iOS ≤ 16 — the protected IOSurface is on sublayers[0] (first)
-            // • iOS 17+ / 26 — TextKit 2 rewrite moved the protected sublayer to the
-            //   last position; if sublayers is empty, field.layer itself carries the flag
+            // iOS ≤ 16:  protected IOSurface is at sublayers[0] (first)
+            // iOS 17–26: UITextField redesign moved the secure layer to sublayers.last.
+            //            The first sublayer is now a decoration/glass-effect layer and
+            //            does NOT carry the IOSurface protection flag.
+            // SAFE: field.layer is never moved, so all sublayer references stay valid.
             let sublayers = field.layer.sublayers ?? []
-            let secureAnchor: CALayer = sublayers.last ?? field.layer
+            let secureAnchor: CALayer
+            if #available(iOS 17.0, *) {
+                secureAnchor = sublayers.last ?? field.layer
+            } else {
+                secureAnchor = sublayers.first ?? field.layer
+            }
 
-            strongSelf.originalWindowSuperLayer = originalSuper
-            strongSelf.savedWindowPosition      = window.layer.position
-            strongSelf.secureField              = field   // keeps field alive & in hierarchy
-
-            // Step 1 ── promote field.layer to be a SIBLING of window.layer.
-            // addSublayer first removes field.layer from window.layer (where UIKit put
-            // it), so there is no circular reference when we reparent window.layer next.
-            originalSuper.addSublayer(field.layer)
-
-            // Step 2 ── reparent window.layer into the protected subtree.
+            // Before: window.layer → [flutterView.layer, field.layer]
+            // After:  window.layer → [field.layer → secureAnchor(protected)
+            //                                           └─ flutterView.layer → Flutter]
             CATransaction.begin()
             CATransaction.setDisableActions(true)
-            secureAnchor.addSublayer(window.layer)
-            window.layer.position = strongSelf.savedWindowPosition
-                ?? CGPoint(x: window.bounds.midX, y: window.bounds.midY)
-            window.layer.bounds   = CGRect(origin: .zero, size: window.bounds.size)
+            secureAnchor.addSublayer(flutterView.layer)
+            flutterView.layer.position = CGPoint(x: flutterView.bounds.midX,
+                                                 y: flutterView.bounds.midY)
+            flutterView.layer.bounds   = flutterView.bounds
             CATransaction.commit()
 
+            strongSelf.secureField         = field
             strongSelf.isScreenshotBlocked = true
             strongSelf.setupCaptureObserver()
             result(true)
@@ -146,37 +150,31 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
 
             strongSelf.teardownCaptureObserver()
 
-            if let originalSuper = strongSelf.originalWindowSuperLayer,
-               let window = strongSelf.getKeyWindow() {
+            if let window = strongSelf.getKeyWindow(),
+               let flutterView = window.rootViewController?.view {
                 CATransaction.begin()
                 CATransaction.setDisableActions(true)
-                // Restore window.layer BEFORE removing field.layer — if we removed
-                // field first, window.layer would be taken with it and the screen
-                // would go blank.
-                originalSuper.addSublayer(window.layer)
-                window.layer.position = strongSelf.savedWindowPosition
-                    ?? CGPoint(x: window.bounds.midX, y: window.bounds.midY)
-                window.layer.bounds   = CGRect(origin: .zero, size: window.bounds.size)
+                // Restore flutterView.layer as a direct sublayer of window.layer.
+                window.layer.insertSublayer(flutterView.layer, at: 0)
+                flutterView.layer.position = CGPoint(x: flutterView.bounds.midX,
+                                                     y: flutterView.bounds.midY)
+                flutterView.layer.bounds   = flutterView.bounds
                 CATransaction.commit()
             }
 
-            // Now it is safe to remove field from both hierarchies.
-            strongSelf.secureField?.removeFromSuperview()   // UIKit view hierarchy
-            strongSelf.secureField?.layer.removeFromSuperlayer() // CALayer tree
-            strongSelf.secureField              = nil
-            strongSelf.originalWindowSuperLayer = nil
-            strongSelf.savedWindowPosition      = nil
-            strongSelf.isScreenshotBlocked      = false
+            // removeFromSuperview also detaches field.layer from window.layer.
+            strongSelf.secureField?.removeFromSuperview()
+            strongSelf.secureField         = nil
+            strongSelf.isScreenshotBlocked = false
             result(true)
         }
     }
 
     // MARK: - Screen-recording overlay (separate UIWindow)
     //
-    // UIScreen.capturedDidChangeNotification fires when a screen recording or
-    // mirror starts / stops, but NOT for one-shot screenshots (the layer trick
-    // above handles those).  We use a dedicated UIWindow at a high level so the
-    // overlay never touches Flutter's window view or layer hierarchy.
+    // UIScreen.capturedDidChangeNotification fires when screen recording starts/stops.
+    // We show a solid black window at a high level so the recording sees black.
+    // This window never touches Flutter's window or layer hierarchy.
 
     private func setupCaptureObserver() {
         captureObserver = NotificationCenter.default.addObserver(
@@ -184,7 +182,7 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
             object: nil,
             queue: .main
         ) { [weak self] _ in self?.syncRecordingOverlay() }
-        syncRecordingOverlay()   // cover the case where recording was already active
+        syncRecordingOverlay()
     }
 
     private func teardownCaptureObserver() {
@@ -215,9 +213,9 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
             win = UIWindow(frame: UIScreen.main.bounds)
         }
 
-        let vc               = UIViewController()
-        vc.view.backgroundColor = .black
-        win.rootViewController  = vc
+        let vc                   = UIViewController()
+        vc.view.backgroundColor  = .black
+        win.rootViewController   = vc
         win.windowLevel          = UIWindow.Level.alert + 100
         win.isUserInteractionEnabled = false
         win.isHidden             = false
