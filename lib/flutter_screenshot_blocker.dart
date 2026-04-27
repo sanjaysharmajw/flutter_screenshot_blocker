@@ -122,10 +122,11 @@ class ScreenshotEvent {
   ScreenshotEvent({required this.type, required this.timestamp, this.metadata});
 
   factory ScreenshotEvent.fromMap(Map<String, dynamic> map) {
+    final meta = map['metadata'];
     return ScreenshotEvent(
       type: map['type'] ?? 'unknown',
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp'] ?? 0),
-      metadata: (map['metadata'] as Map?)?.cast<String, dynamic>(),
+      metadata: meta is Map ? Map<String, dynamic>.from(meta) : null,
     );
   }
 
