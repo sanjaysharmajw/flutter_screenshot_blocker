@@ -382,7 +382,7 @@ This plugin provides **system-level protection** which means:
 - **Web**: Not supported (web platform limitations) - Next Feature(Coming Soon)
 
 
-### ⚠️ iOS Simulator Limitation
+### ⚠️ iOS Simulator Limitation - Use always real device
 
 **Screenshot blocking does NOT work on iOS Simulator.** Always test on a real iOS device.
 
@@ -399,7 +399,7 @@ This plugin provides **system-level protection** which means:
 - The Simulator is just a macOS window — macOS can freely screenshot everything inside it
 - `UIScreen.capturedDidChangeNotification` for recording detection also doesn't fire correctly
 
-### ⚠️ Android Emulator Limitation
+### ⚠️ Android Emulator Limitation - Use always real device
 
 **Screenshot blocking partially works on Android Emulator** — unlike iOS Simulator, it is not a complete failure, but full testing requires a real device.
 
