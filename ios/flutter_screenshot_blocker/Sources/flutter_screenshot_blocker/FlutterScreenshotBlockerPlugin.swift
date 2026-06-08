@@ -43,23 +43,16 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
     // MARK: - Helpers
 
     private func getKeyWindow() -> UIWindow? {
-        if #available(iOS 13.0, *) {
-            let scenes = UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-            return scenes.flatMap { $0.windows }.first { $0.isKeyWindow }
-                ?? scenes.flatMap { $0.windows }.first
-        }
-        return UIApplication.shared.keyWindow
+        let scenes = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+        return scenes.flatMap { $0.windows }.first { $0.isKeyWindow }
+            ?? scenes.flatMap { $0.windows }.first
     }
 
     private func isBeingCaptured() -> Bool {
-        if #available(iOS 13.0, *) {
-            return UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .first?.screen.isCaptured ?? false
-        }
-        if #available(iOS 11.0, *) { return UIScreen.main.isCaptured }
-        return false
+        return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.screen.isCaptured ?? false
     }
 
     // MARK: - Screenshot / recording blocking
@@ -200,18 +193,13 @@ public class FlutterScreenshotBlockerPlugin: NSObject, FlutterPlugin {
     private func showOverlayWindow() {
         guard overlayWindow == nil else { return }
 
-        let win: UIWindow
-        if #available(iOS 13.0, *) {
-            let scene = UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .first { $0.activationState == .foregroundActive }
-                ?? UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }.first
-            guard let s = scene else { return }
-            win = UIWindow(windowScene: s)
-        } else {
-            win = UIWindow(frame: UIScreen.main.bounds)
-        }
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+            ?? UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }.first
+        guard let s = scene else { return }
+        let win = UIWindow(windowScene: s)
 
         let vc                   = UIViewController()
         vc.view.backgroundColor  = .black
